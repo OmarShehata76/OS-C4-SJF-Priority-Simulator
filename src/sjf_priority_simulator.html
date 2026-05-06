@@ -414,7 +414,7 @@
       <button class="btn btn-warning" onclick="loadScenario('B')">Scenario B: Conflict</button>
       <button class="btn btn-warning" onclick="loadScenario('C')">Scenario C: Starvation</button>
       <button class="btn btn-warning" onclick="loadScenario('D')">Scenario D: Validation Test</button>
-      <button class="btn btn-danger" onclick="clearAll()">Clear All</button>
+      <button class="btn btn-danger" onclick="clearAll()" style="background:#dc2626; color:#fff; border:none;">🔄 Reset / Clear All</button>
     </div>
   </div>
 
@@ -445,6 +445,14 @@
 
   <!-- RESULTS -->
   <div id="results-section" class="hidden">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;">
+      <div>
+        <span style="font-weight:700;color:#059669;font-size:1rem;">✅ Simulation Complete</span>
+        <span style="color:#64748b;font-size:0.85rem;margin-right:0.75rem;"> — شوف النتايج في الأسفل</span>
+      </div>
+      <button onclick="clearAll()" style="background:#dc2626;color:#fff;border:none;padding:0.6rem 1.5rem;border-radius:8px;font-size:0.9rem;font-weight:700;cursor:pointer;">🔄 New Simulation / Reset</button>
+    </div>
 
     <!-- GANTT SJF -->
     <div class="card">

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentation — SJF vs Priority | C4</title>
+<style>
+  :root { --sjf:#0d9488;--pri:#7c3aed;--blue:#2563eb;--dark:#0f172a;--bg:#f1f5f9;--border:#e2e8f0;--text:#1e293b;--muted:#64748b; }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);line-height:1.8;}
+  .header{background:linear-gradient(135deg,#0f172a,#1e3a5f);color:white;padding:2.5rem 2rem;text-align:center;border-bottom:4px solid #0d9488;}
+  .header h1{font-size:1.8rem;font-weight:800;margin-bottom:0.5rem;}
+  .header p{color:#94a3b8;font-size:0.95rem;}
+  .badges{display:flex;gap:0.75rem;justify-content:center;margin-top:1rem;flex-wrap:wrap;}
+  .badge{padding:0.3rem 0.9rem;border-radius:20px;font-size:0.8rem;font-weight:700;}
+  .badge-teal{background:#ccfbf1;color:#065f46;} .badge-purple{background:#ede9fe;color:#4c1d95;} .badge-blue{background:#dbeafe;color:#1e40af;}
+  .nav{background:white;border-bottom:1px solid var(--border);padding:0.75rem 2rem;display:flex;gap:1.5rem;overflow-x:auto;position:sticky;top:0;z-index:100;flex-wrap:wrap;}
+  .nav a{color:var(--muted);text-decoration:none;font-size:0.85rem;font-weight:600;white-space:nowrap;padding:0.3rem 0;border-bottom:2px solid transparent;}
+  .nav a:hover{color:var(--blue);border-bottom-color:var(--blue);}
+  .container{max-width:1000px;margin:2rem auto;padding:0 1.5rem;}
+  .section{margin-bottom:2.5rem;}
+  .section-title{display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;padding-bottom:0.75rem;border-bottom:2px solid var(--border);}
+  .section-num{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;color:white;flex-shrink:0;}
+  .bg-blue{background:var(--blue);} .bg-teal{background:var(--sjf);} .bg-purple{background:var(--pri);} .bg-orange{background:#f59e0b;} .bg-green{background:#059669;} .bg-red{background:#dc2626;} .bg-gray{background:#64748b;}
+  .section-title h2{font-size:1.2rem;font-weight:700;color:var(--dark);}
+  .card{background:white;border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem;}
+  .card p{font-size:0.9rem;color:#374151;margin-bottom:0.5rem;}
+  .algo-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .algo-card{border-radius:12px;padding:1.25rem;border:2px solid;}
+  .algo-card.sjf{background:#f0fdfa;border-color:var(--sjf);}
+  .algo-card.pri{background:#faf5ff;border-color:var(--pri);}
+  .algo-card h3{margin-bottom:0.75rem;font-size:1rem;}
+  .algo-card.sjf h3{color:var(--sjf);} .algo-card.pri h3{color:var(--pri);}
+  .algo-card ul{padding-left:1.25rem;font-size:0.88rem;}
+  .algo-card li{margin-bottom:0.4rem;}
+  .formula-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;}
+  .formula-card{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:0.9rem 1rem;}
+  .formula-card .name{font-weight:700;font-size:0.85rem;color:var(--blue);margin-bottom:0.25rem;}
+  .formula-card .formula{font-family:monospace;background:#1e293b;color:#e2e8f0;padding:0.3rem 0.6rem;border-radius:6px;font-size:0.85rem;display:inline-block;margin-bottom:0.3rem;}
+  .formula-card .desc{font-size:0.82rem;color:var(--muted);}
+  .scenario-card{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem;}
+  .scenario-header{padding:0.9rem 1.25rem;display:flex;align-items:center;gap:0.75rem;}
+  .scenario-body{padding:1.25rem;}
+  .scenario-label{font-size:0.75rem;font-weight:800;padding:0.25rem 0.75rem;border-radius:20px;}
+  table{width:100%;border-collapse:collapse;font-size:0.85rem;margin:0.75rem 0;}
+  th{background:#f1f5f9;padding:0.6rem 0.75rem;text-align:center;font-weight:700;font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+  td{padding:0.55rem 0.75rem;text-align:center;border-bottom:1px solid #f1f5f9;}
+  tr:last-child td{border-bottom:none;}
+  .avg-row td{background:#f8fafc;font-weight:700;border-top:2px solid #e2e8f0;}
+  .winner{background:#dcfce7;color:#166534;font-weight:700;border-radius:4px;padding:0.1rem 0.4rem;}
+  .analysis-box{border-radius:10px;padding:1rem 1.25rem;margin-top:0.75rem;font-size:0.88rem;}
+  .analysis-box.blue{background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;}
+  .analysis-box.orange{background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;}
+  .analysis-box.red{background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d;}
+  .rejected{color:#dc2626;font-weight:700;} .accepted{color:#059669;font-weight:700;}
+  .compare-table th{background:#1e293b;color:white;}
+  .sjf-col{color:var(--sjf);font-weight:700;} .pri-col{color:var(--pri);font-weight:700;}
+  .conclusion-box{background:linear-gradient(135deg,#f0fdf4,#eff6ff);border:2px solid #bbf7d0;border-radius:12px;padding:1.5rem;}
+  .conclusion-box h3{color:#166534;margin-bottom:0.75rem;font-size:1rem;}
+  .conclusion-box p{font-size:0.9rem;color:#374151;margin-bottom:0.75rem;}
+  .tip{background:#fefce8;border-left:4px solid #f59e0b;padding:0.75rem 1rem;border-radius:0 8px 8px 0;font-size:0.88rem;color:#713f12;margin:0.75rem 0;}
+  .rule-box{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:0.75rem;font-size:0.88rem;}
+  .valid-rule{display:flex;gap:1rem;align-items:flex-start;padding:0.6rem 0;border-bottom:1px dashed var(--border);font-size:0.88rem;}
+  .valid-rule:last-child{border:none;}
+  .footer{text-align:center;padding:2rem;color:var(--muted);font-size:0.85rem;border-top:1px solid var(--border);margin-top:2rem;}
+  @media(max-width:700px){.algo-grid,.formula-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Documentation — SJF vs Priority Scheduling</h1>
+  <p>Operating Systems Course — C4 Comparison Project</p>
+  <div class="badges">
+    <span class="badge badge-teal">SJF (Preemptive)</span>
+    <span class="badge badge-purple">Priority (Preemptive)</span>
+    <span class="badge badge-blue">OS Course — Project C4</span>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="#overview">Overview</a>
+  <a href="#algorithms">Algorithms</a>
+  <a href="#metrics">Metrics</a>
+  <a href="#rules">Rules</a>
+  <a href="#validation">Validation</a>
+  <a href="#scenarioA">Scenario A</a>
+  <a href="#scenarioB">Scenario B</a>
+  <a href="#scenarioC">Scenario C</a>
+  <a href="#scenarioD">Scenario D</a>
+  <a href="#comparison">Comparison</a>
+  <a href="#conclusion">Conclusion</a>
+</nav>
+
+<div class="container">
+
+  <div class="section" id="overview">
+    <div class="section-title"><div class="section-num bg-blue">1</div><h2>Project Overview</h2></div>
+    <div class="card">
+      <p>This project compares two CPU scheduling algorithms: <strong>SJF (Shortest Job First — Preemptive)</strong> and <strong>Priority Scheduling (Preemptive)</strong>. Both algorithms are executed on the exact same workload to ensure a valid and fair comparison.</p>
+      <p style="margin-top:0.75rem;">The goal is to analyze the difference between a scheduler that prioritizes the <strong>shortest remaining burst time</strong> and one that prioritizes <strong>process importance (priority value)</strong>, and to evaluate how each affects waiting time, response time, and turnaround time.</p>
+    </div>
+  </div>
+
+  <div class="section" id="algorithms">
+    <div class="section-title"><div class="section-num bg-teal">2</div><h2>Algorithm Descriptions</h2></div>
+    <div class="algo-grid">
+      <div class="algo-card sjf">
+        <h3>⚡ SJF — Shortest Job First (Preemptive)</h3>
+        <ul>
+          <li>Always selects the process with the <strong>shortest remaining burst time</strong> from the ready queue</li>
+          <li><strong>Preemptive:</strong> if a new process arrives with a shorter remaining burst time than the currently running one, it is immediately preempted</li>
+          <li>Also known as <strong>SRTF (Shortest Remaining Time First)</strong></li>
+          <li>Tie-breaking: equal remaining burst time → earlier arrival time wins; if still tied → alphabetical Process ID</li>
+        </ul>
+      </div>
+      <div class="algo-card pri">
+        <h3>🎯 Priority Scheduling (Preemptive)</h3>
+        <ul>
+          <li>Always selects the process with the <strong>highest priority</strong> (lowest priority number) from the ready queue</li>
+          <li><strong>Priority rule:</strong> lower number = higher priority (1 = most important, 10 = least important)</li>
+          <li><strong>Preemptive:</strong> if a new process arrives with a higher priority than the currently running one, it is immediately preempted</li>
+          <li>Tie-breaking: equal priority → earlier arrival time wins</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="metrics">
+    <div class="section-title"><div class="section-num bg-orange">3</div><h2>Metrics Calculated</h2></div>
+    <div class="formula-grid">
+      <div class="formula-card">
+        <div class="name">CT — Completion Time</div>
+        <div class="formula">time when process finishes</div>
+        <div class="desc">The exact time at which the process finishes its execution on the CPU</div>
+      </div>
+      <div class="formula-card">
+        <div class="name">TAT — Turnaround Time</div>
+        <div class="formula">TAT = CT − Arrival Time</div>
+        <div class="desc">Total time from when the process arrived until it completed execution</div>
+      </div>
+      <div class="formula-card">
+        <div class="name">WT — Waiting Time</div>
+        <div class="formula">WT = TAT − Burst Time</div>
+        <div class="desc">Total time the process spent waiting in the ready queue without executing</div>
+      </div>
+      <div class="formula-card">
+        <div class="name">RT — Response Time</div>
+        <div class="formula">RT = First CPU Time − Arrival Time</div>
+        <div class="desc">Time from when the process arrived until it first received CPU execution</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="rules">
+    <div class="section-title"><div class="section-num bg-purple">4</div><h2>Implementation Rules</h2></div>
+    <div class="rule-box"><strong>Priority Rule:</strong> A lower priority number means higher importance. Priority = 1 is the most important; Priority = 10 is the least important.</div>
+    <div class="rule-box"><strong>Preemption Rule:</strong> Both algorithms are preemptive. The running process is interrupted immediately when a more eligible process enters the ready queue.</div>
+    <div class="rule-box"><strong>Tie-Breaking Rule:</strong> When eligibility is equal, the process with the earlier arrival time is selected. If arrival times are also equal, selection is made alphabetically by Process ID.</div>
+    <div class="rule-box"><strong>Same Workload Rule:</strong> Both algorithms must run on the exact same set of processes. A comparison is invalid if different datasets are used.</div>
+  </div>
+
+  <div class="section" id="validation">
+    <div class="section-title"><div class="section-num bg-red">5</div><h2>Input Validation</h2></div>
+    <div class="card">
+      <p style="margin-bottom:0.75rem;">The simulator validates all input before the simulation begins and rejects any invalid data with a clear error message.</p>
+      <div class="valid-rule"><span>❌</span><span><strong>Negative Arrival Time:</strong> rejected — must be ≥ 0</span></div>
+      <div class="valid-rule"><span>❌</span><span><strong>Zero or Negative Burst Time:</strong> rejected — must be ≥ 1</span></div>
+      <div class="valid-rule"><span>❌</span><span><strong>Priority Out of Range:</strong> rejected — must be between 1 and 10</span></div>
+      <div class="valid-rule"><span>❌</span><span><strong>Duplicate Process ID:</strong> rejected — each process must have a unique ID</span></div>
+      <div class="valid-rule"><span>❌</span><span><strong>Empty Fields:</strong> rejected — all fields are required</span></div>
+      <div class="valid-rule"><span>❌</span><span><strong>Non-numeric Values in Numeric Fields:</strong> rejected</span></div>
+      <div class="valid-rule"><span>✅</span><span><strong>Valid Input:</strong> unique PID, AT ≥ 0, BT ≥ 1, Priority 1–10</span></div>
+    </div>
+  </div>
+
+  <div class="section" id="scenarioA">
+    <div class="section-title"><div class="section-num bg-blue">A</div><h2>Scenario A — Basic Mixed Workload</h2></div>
+    <div class="scenario-card">
+      <div class="scenario-header" style="background:#eff6ff;">
+        <span class="scenario-label" style="background:#dbeafe;color:#1e40af;">Scenario A</span>
+        <strong>Normal workload — tests the basic correctness of both algorithms</strong>
+      </div>
+      <div class="scenario-body">
+        <h3 style="margin-bottom:0.75rem;">Input Data</h3>
+        <table>
+          <thead><tr><th>PID</th><th>Arrival Time</th><th>Burst Time</th><th>Priority</th></tr></thead>
+          <tbody>
+            <tr><td>P1</td><td>0</td><td>6</td><td>3</td></tr>
+            <tr><td>P2</td><td>1</td><td>4</td><td>1</td></tr>
+            <tr><td>P3</td><td>2</td><td>8</td><td>4</td></tr>
+            <tr><td>P4</td><td>3</td><td>2</td><td>2</td></tr>
+            <tr><td>P5</td><td>4</td><td>5</td><td>5</td></tr>
+          </tbody>
+        </table>
+        <h3 style="margin:1rem 0 0.75rem;">SJF Results</h3>
+        <table>
+          <thead><tr><th>PID</th><th>AT</th><th>BT</th><th>CT</th><th>TAT</th><th>WT</th><th>RT</th></tr></thead>
+          <tbody>
+            <tr><td>P1</td><td>0</td><td>6</td><td>13</td><td>13</td><td>7</td><td>0</td></tr>
+            <tr><td>P2</td><td>1</td><td>4</td><td>7</td><td>6</td><td>2</td><td>0</td></tr>
+            <tr><td>P3</td><td>2</td><td>8</td><td>25</td><td>23</td><td>15</td><td>13</td></tr>
+            <tr><td>P4</td><td>3</td><td>2</td><td>5</td><td>2</td><td>0</td><td>0</td></tr>
+            <tr><td>P5</td><td>4</td><td>5</td><td>18</td><td>14</td><td>9</td><td>9</td></tr>
+            <tr class="avg-row"><td colspan="4" style="text-align:right;">Average</td><td>11.6</td><td>6.6</td><td>4.4</td></tr>
+          </tbody>
+        </table>
+        <h3 style="margin:1rem 0 0.75rem;">Priority Results</h3>
+        <table>
+          <thead><tr><th>PID</th><th>AT</th><th>BT</th><th>Priority</th><th>CT</th><th>TAT</th><th>WT</th><th>RT</th></tr></thead>
+          <tbody>
+            <tr><td>P1</td><td>0</td><td>6</td><td>3</td><td>11</td><td>11</td><td>5</td><td>0</td></tr>
+            <tr><td>P2</td><td>1</td><td>4</td><td>1</td><td>5</td><td>4</td><td>0</td><td>0</td></tr>
+            <tr><td>P3</td><td>2</td><td>8</td><td>4</td><td>23</td><td>21</td><td>13</td><td>13</td></tr>
+            <tr><td>P4</td><td>3</td><td>2</td><td>2</td><td>7</td><td>4</td><td>2</td><td>2</td></tr>
+            <tr><td>P5</td><td>4</td><td>5</td><td>5</td><td>25</td><td>21</td><td>16</td><td>16</td></tr>
+            <tr class="avg-row"><td colspan="5" style="text-align:right;">Average</td><td>12.2</td><td>7.2</td><td>6.2</td></tr>
+          </tbody>
+        </table>
+        <div class="analysis-box blue">
+          <strong>Analysis:</strong> SJF achieved lower average waiting time (6.6 vs 7.2) and lower average turnaround time (11.6 vs 12.2). Priority Scheduling gave P2 (priority=1) the fastest response since it is the most important process. SJF is more efficient overall; Priority better serves urgent processes.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="scenarioB">
+    <div class="section-title"><div class="section-num bg-orange">B</div><h2>Scenario B — Conflict: High-Priority Long Job vs Low-Priority Short Job</h2></div>
+    <div class="scenario-card">
+      <div class="scenario-header" style="background:#fff7ed;">
+        <span class="scenario-label" style="background:#fed7aa;color:#7c2d12;">Scenario B</span>
+        <strong>Reveals the fundamental trade-off between burst time and priority</strong>
+      </div>
+      <div class="scenario-body">
+        <div class="tip">Purpose: P1 has the highest priority (1) but the longest burst time (10). P2 has the lowest priority (5) but the shortest burst time (2). The two algorithms will make opposite scheduling decisions.</div>
+        <h3 style="margin-bottom:0.75rem;">Input Data</h3>
+        <table>
+          <thead><tr><th>PID</th><th>Arrival Time</th><th>Burst Time</th><th>Priority</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>P1</td><td>0</td><td>10</td><td>1</td><td>Highest priority — longest burst</td></tr>
+            <tr><td>P2</td><td>1</td><td>2</td><td>5</td><td>Lowest priority — shortest burst</td></tr>
+            <tr><td>P3</td><td>2</td><td>3</td><td>4</td><td>Low priority — short burst</td></tr>
+            <tr><td>P4</td><td>3</td><td>1</td><td>3</td><td>Shortest burst time</td></tr>
+            <tr><td>P5</td><td>4</td><td>4</td><td>2</td><td>Medium priority</td></tr>
+          </tbody>
+        </table>
+        <div class="algo-grid" style="margin-top:1rem;gap:1rem;">
+          <div class="algo-card sjf">
+            <h3>SJF Behavior</h3>
+            <p style="font-size:0.88rem;">P1 starts at t=0. At t=1, P2 arrives (BT=2) which is less than P1's remaining time (9) — P1 is preempted immediately. Short processes P2, P4, P3 complete quickly before P1 resumes and finishes last.</p>
+          </div>
+          <div class="algo-card pri">
+            <h3>Priority Behavior</h3>
+            <p style="font-size:0.88rem;">P1 has priority=1 (highest). No process can preempt it. P1 runs uninterrupted from t=0 to t=10. Afterward, processes are served by priority: P5 (2), P4 (3), P3 (4), P2 (5) last.</p>
+          </div>
+        </div>
+        <div class="analysis-box orange" style="margin-top:1rem;">
+          <strong>Key Observation:</strong> SJF completes short-burst processes quickly regardless of priority. Priority ensures the most important process (P1) runs to completion without interruption. This is the core trade-off: <strong>efficiency (SJF) vs urgency (Priority)</strong>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="scenarioC">
+    <div class="section-title"><div class="section-num bg-red">C</div><h2>Scenario C — Starvation Risk</h2></div>
+    <div class="scenario-card">
+      <div class="scenario-header" style="background:#fef2f2;">
+        <span class="scenario-label" style="background:#fecaca;color:#7f1d1d;">Scenario C</span>
+        <strong>A low-priority process may wait indefinitely — demonstrates starvation</strong>
+      </div>
+      <div class="scenario-body">
+        <h3 style="margin-bottom:0.75rem;">Input Data</h3>
+        <table>
+          <thead><tr><th>PID</th><th>Arrival Time</th><th>Burst Time</th><th>Priority</th></tr></thead>
+          <tbody>
+            <tr><td>P1</td><td>0</td><td>1</td><td>1</td></tr>
+            <tr><td>P2</td><td>0</td><td>1</td><td>1</td></tr>
+            <tr><td>P3</td><td>0</td><td>1</td><td>1</td></tr>
+            <tr><td>P4</td><td>0</td><td>1</td><td>1</td></tr>
+            <tr><td>P5</td><td>0</td><td>8</td><td>5</td></tr>
+          </tbody>
+        </table>
+        <div class="analysis-box red" style="margin-top:1rem;">
+          <strong>Starvation Observation:</strong> P5 has the lowest priority (5) and the longest burst time (8). In Priority Scheduling, P5 must wait until all four high-priority processes (P1–P4) complete before receiving any CPU time. In a continuous real system where new high-priority processes keep arriving, P5 could be delayed indefinitely — this is called <strong>starvation</strong>. SJF also delays P5 here due to the shorter burst times of P1–P4, but for efficiency reasons rather than priority-based discrimination.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="scenarioD">
+    <div class="section-title"><div class="section-num bg-gray">D</div><h2>Scenario D — Input Validation Test</h2></div>
+    <div class="scenario-card">
+      <div class="scenario-header" style="background:#f8fafc;">
+        <span class="scenario-label" style="background:#e2e8f0;color:#374151;">Scenario D</span>
+        <strong>Demonstrates how the simulator safely rejects invalid input</strong>
+      </div>
+      <div class="scenario-body">
+        <table>
+          <thead><tr><th>PID</th><th>Arrival Time</th><th>Burst Time</th><th>Priority</th><th>Result</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>P1</td><td style="color:#dc2626">-1</td><td>5</td><td>2</td><td class="rejected">REJECTED ❌</td><td>Arrival Time is negative</td></tr>
+            <tr><td>P1</td><td>0</td><td style="color:#dc2626">0</td><td>2</td><td class="rejected">REJECTED ❌</td><td>Burst Time = 0</td></tr>
+            <tr><td>P1</td><td>0</td><td>5</td><td style="color:#dc2626">15</td><td class="rejected">REJECTED ❌</td><td>Priority exceeds maximum (10)</td></tr>
+            <tr><td style="color:#dc2626">(empty)</td><td>0</td><td>5</td><td>2</td><td class="rejected">REJECTED ❌</td><td>Process ID is missing</td></tr>
+            <tr><td>P1</td><td>0</td><td>5</td><td>2</td><td class="accepted">ACCEPTED ✅</td><td>All values are valid</td></tr>
+            <tr><td style="color:#dc2626">P1</td><td>2</td><td>3</td><td>1</td><td class="rejected">REJECTED ❌</td><td>Duplicate Process ID</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="comparison">
+    <div class="section-title"><div class="section-num bg-green">6</div><h2>Overall Comparison</h2></div>
+    <div class="card">
+      <table class="compare-table">
+        <thead><tr><th>Criterion</th><th><span class="sjf-col">SJF (Preemptive)</span></th><th><span class="pri-col">Priority (Preemptive)</span></th></tr></thead>
+        <tbody>
+          <tr><td>Selection basis</td><td>Shortest remaining burst time</td><td>Highest priority (lowest number)</td></tr>
+          <tr><td>Avg Waiting Time (Scenario A)</td><td><span class="winner">6.6 ✓</span></td><td>7.2</td></tr>
+          <tr><td>Avg Turnaround Time (Scenario A)</td><td><span class="winner">11.6 ✓</span></td><td>12.2</td></tr>
+          <tr><td>Avg Response Time (Scenario A)</td><td><span class="winner">4.4 ✓</span></td><td>6.2</td></tr>
+          <tr><td>Service for urgent processes</td><td>Not considered</td><td><span class="winner">Guaranteed ✓</span></td></tr>
+          <tr><td>Starvation risk</td><td>Low (only very long jobs)</td><td>High (low-priority processes)</td></tr>
+          <tr><td>Overall fairness</td><td><span class="winner">Better average fairness ✓</span></td><td>Unfair to low-priority processes</td></tr>
+          <tr><td>Overall efficiency</td><td><span class="winner">Higher efficiency ✓</span></td><td>Lower efficiency, critical-system suitable</td></tr>
+          <tr><td>Best suited for</td><td>Batch systems, general workloads</td><td>Real-time systems, critical processes</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section" id="conclusion">
+    <div class="section-title"><div class="section-num bg-green">7</div><h2>Conclusion & Recommendation</h2></div>
+    <div class="conclusion-box">
+      <h3>Final Conclusion</h3>
+      <p><strong>SJF (Preemptive)</strong> achieved better results in terms of average waiting time and average turnaround time across all tested scenarios. By always executing the shortest available job, SJF minimizes waiting time for short processes and delivers the highest overall efficiency.</p>
+      <p><strong>Priority Scheduling</strong> ensures the most important processes are always served first regardless of length — essential in real-time and critical systems. However, it carries a significant risk of <strong>starvation</strong> for low-priority processes.</p>
+      <p><strong>Main Trade-off:</strong> SJF optimizes overall efficiency (lower average WT and TAT), while Priority Scheduling optimizes urgency (guarantees service for critical processes). The right choice depends on system requirements.</p>
+      <p><strong>Recommendation for the tested workload: <span style="color:#059669;">SJF</span></strong> — it produced lower average waiting time and turnaround time, making it more efficient for general-purpose workloads where all processes carry equal importance.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>Operating Systems Course — C4: SJF vs Priority Comparison Project</p>
+  <p style="margin-top:0.25rem;">Algorithms: SJF (Preemptive) and Priority Scheduling (Preemptive) | Priority Rule: lower number = higher priority</p>
+</div>
+</body>
+</html>
